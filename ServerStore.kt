@@ -1,6 +1,7 @@
 package com.mysql.app
 
 import android.content.Context
+import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import org.json.JSONArray
@@ -8,27 +9,34 @@ import org.json.JSONObject
 
 class ServerStore(context: Context) {
 
-    private val prefs = EncryptedSharedPreferences.create(
-        context,
-        "mysql_app_prefs",
-        MasterKey.Builder(context).setKeyScheme(MasterKey.KeyScheme.AES256_GCM).build(),
-        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-    )
+    private val prefs: SharedPreferences = try {
+        EncryptedSharedPreferences.create(
+            context,
+            "mysql_app_prefs",
+            MasterKey.Builder(context).setKeyScheme(MasterKey.KeyScheme.AES256_GCM).build(),
+            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+        )
+    } catch (e: Throwable) {
+        context.getSharedPreferences("mysql_app_plain", Context.MODE_PRIVATE)
+    }
 
     var lockEnabled: Boolean
         get() = prefs.getBoolean("lock", false)
         set(v) = prefs.edit().putBoolean("lock", v).apply()
 
     fun load(): List<Server> {
-        val raw = prefs.getString("servers", "[]") ?: "[]"
-        val arr = JSONArray(raw)
-        return (0 until arr.length()).map {
-            val o = arr.getJSONObject(it)
-            Server(
-                o.getString("id"), o.getString("name"), o.getString("url"),
-                o.getString("user"), o.getString("pass"), o.getBoolean("auto")
-            )
+        return try {
+            val arr = JSONArray(prefs.getString("servers", "[]") ?: "[]")
+            (0 until arr.length()).map {
+                val o = arr.getJSONObject(it)
+                Server(
+                    o.getString("id"), o.getString("name"), o.getString("url"),
+                    o.getString("user"), o.getString("pass"), o.getBoolean("auto")
+                )
+            }
+        } catch (e: Throwable) {
+            emptyList()
         }
     }
 
