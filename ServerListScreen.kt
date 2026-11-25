@@ -1,6 +1,5 @@
 package com.mysql.app
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -13,7 +12,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import java.util.UUID
@@ -33,13 +31,7 @@ fun ServerListScreen(store: ServerStore, onOpen: (Server) -> Unit) {
 
     Scaffold(
         topBar = {
-            TopAppBar(title = {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Image(painterResource(R.drawable.logo), null, Modifier.size(32.dp))
-                    Spacer(Modifier.width(8.dp))
-                    Text("MySQL")
-                }
-            })
+            TopAppBar(title = { Text("MySQL") })
         },
         floatingActionButton = {
             FloatingActionButton(onClick = { editing = null; showDialog = true }) {
